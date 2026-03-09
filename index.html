@@ -923,7 +923,8 @@
     if (!name) { showToast('Enter a group name!', true); return; }
     if (selectedLeagues.size === 0) { showToast('Select at least one league!', true); return; }
 
-    const code = (name.toUpperCase().replace(/\s+/g, '').slice(0, 4) + Math.floor(Math.random() * 900 + 100));
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const code = Array.from({length: 6}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 
     try {
       await addDoc(collection(db, 'groups'), {
