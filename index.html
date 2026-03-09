@@ -610,15 +610,15 @@
           <div class="match-league-tag">${league?.flag || ''} ${league?.name || m.league}</div>
           <div class="match-main">
             <div class="team home">
-              <div class="team-crest">${m.home.crest}</div>
+              <div class="team-crest" style="background:transparent">${m.home.crest ? `<img src="${m.home.crest}" style="width:28px;height:28px;object-fit:contain" onerror="this.style.display='none'" />` : '⚽'}</div>
               <div><div class="team-name">${m.home.name}</div></div>
             </div>
             <div class="match-center">
-              <span class="match-time">${m.time}</span>
-              <div class="match-date">${m.date}</div>
+              <span class="match-time">${m.status === 'IN_PLAY' || m.status === 'PAUSED' ? `<span style="color:var(--red)">${m.score?.fullTime?.home ?? 0} - ${m.score?.fullTime?.away ?? 0}</span>` : m.time}</span>
+              <div class="match-date">${m.status === 'IN_PLAY' ? '<span style="color:var(--red);font-size:0.7rem;font-weight:700">● LIVE</span>' : m.date}</div>
             </div>
             <div class="team away">
-              <div class="team-crest">${m.away.crest}</div>
+              <div class="team-crest" style="background:transparent">${m.away.crest ? `<img src="${m.away.crest}" style="width:28px;height:28px;object-fit:contain" onerror="this.style.display='none'" />` : '⚽'}</div>
               <div><div class="team-name">${m.away.name}</div></div>
             </div>
           </div>
