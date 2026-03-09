@@ -289,6 +289,39 @@
     }
     .btn-secondary:hover { color: var(--text); }
 
+    /* ── HISTORY ── */
+    .history-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); margin-bottom: 10px; overflow: hidden;
+    }
+    .history-match {
+      display: grid; grid-template-columns: 1fr auto 1fr;
+      align-items: center; padding: 14px 18px; gap: 8px;
+    }
+    .history-team { font-size: 0.88rem; font-weight: 600; }
+    .history-team.away { text-align: right; }
+    .history-score-center { text-align: center; }
+    .history-real-score {
+      font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem;
+      letter-spacing: 2px; color: var(--text); display: block;
+    }
+    .history-league { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+    .history-footer {
+      border-top: 1px solid var(--border); padding: 10px 18px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--surface2); flex-wrap: wrap; gap: 8px;
+    }
+    .history-pred { font-size: 0.82rem; color: var(--muted); }
+    .history-pred strong { color: var(--text); }
+    .history-pts {
+      font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem;
+      padding: 4px 12px; border-radius: 99px;
+    }
+    .history-pts.great { background: rgba(0,232,122,0.15); color: var(--green); }
+    .history-pts.good  { background: rgba(77,159,255,0.15); color: var(--blue); }
+    .history-pts.zero  { background: rgba(107,114,128,0.15); color: var(--muted); }
+    .history-pending { font-size: 0.75rem; color: var(--yellow); font-weight: 600; }
+
     /* ── LOADING ── */
     .loading { display: flex; align-items: center; justify-content: center; padding: 60px; color: var(--muted); gap: 10px; }
     .spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.7s linear infinite; }
@@ -341,6 +374,7 @@
       <button class="nav-tab active" onclick="switchTab('matches')">Matches</button>
       <button class="nav-tab" onclick="switchTab('table')">Table</button>
       <button class="nav-tab" onclick="switchTab('groups')">Groups</button>
+      <button class="nav-tab" onclick="switchTab('history')">History</button>
     </div>
     <div class="nav-right">
       <button class="signout-btn" onclick="signOut()">Sign out</button>
@@ -394,6 +428,11 @@
         <input class="join-input" id="joinCodeInput" placeholder="Enter invite code (e.g. WOLF42)" />
         <button class="btn-primary" style="flex:none;padding:11px 20px;" onclick="joinGroup()">Join</button>
       </div>
+    </div>
+    <!-- HISTORY -->
+    <div class="view" id="view-history">
+      <div class="section-title">MY PREDICTIONS</div>
+      <div id="historyList"><div class="loading"><div class="spinner"></div> Loading...</div></div>
     </div>
   </div>
 </div>
@@ -911,11 +950,74 @@
 
   window.switchTab = (tab) => {
     document.querySelectorAll('.nav-tab').forEach((t, i) => {
-      t.classList.toggle('active', ['matches','table','groups'][i] === tab);
+      t.classList.toggle('active', ['matches','table','groups','history'][i] === tab);
     });
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById(`view-${tab}`).classList.add('active');
+    if (tab === 'history') loadHistory();
   };
+
+  async function loadHistory() {
+    const container = document.getElementById('historyList');
+    container.innerHTML = '<div class="loading"><div class="spinner"></div> Loading...</div>';
+
+    try {
+      const snap = await getDocs(query(
+        collection(db, 'predictions'),
+        where('userId', '==', currentUser.uid),
+        orderBy('createdAt', 'desc')
+      ));
+
+      if (snap.empty) {
+        container.innerHTML = '<div class="loading" style="color:var(--muted)">No predictions yet. Start predicting! ⚽</div>';
+        return;
+      }
+
+      const preds = snap.docs.map(d => d.data());
+
+      container.innerHTML = preds.map(p => {
+        const match = LIVE_MATCHES.find(m => m.id === p.matchId);
+        const homeName = match?.home?.name || 'Home Team';
+        const awayName = match?.away?.name || 'Away Team';
+        const league = match ? LEAGUES.find(l => l.id === match.league) : null;
+        const isScored = p.scored === true;
+        const pts = p.points || 0;
+
+        let ptsClass = 'zero';
+        let ptsLabel = isScored ? `${pts} pts` : '⏳ Pending';
+        if (isScored && pts >= 8) ptsClass = 'great';
+        else if (isScored && pts >= 3) ptsClass = 'good';
+
+        const realScore = isScored ? `${p.realHome} – ${p.realAway}` : '? – ?';
+
+        return `
+          <div class="history-card">
+            <div class="history-match">
+              <div class="history-team">${homeName}</div>
+              <div class="history-score-center">
+                <span class="history-real-score">${realScore}</span>
+                ${league ? `<div class="history-league">${league.flag} ${league.name}</div>` : ''}
+              </div>
+              <div class="history-team away">${awayName}</div>
+            </div>
+            <div class="history-footer">
+              <span class="history-pred">
+                Your pick: <strong>${p.homeScore} – ${p.awayScore}</strong>
+                ${p.scorer ? `· ⚽ <strong>${p.scorer}</strong>` : ''}
+              </span>
+              <span class="history-pts ${isScored ? ptsClass : 'zero'}">
+                ${ptsLabel}
+              </span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+    } catch(e) {
+      container.innerHTML = '<div class="loading" style="color:var(--red)">Could not load history.</div>';
+      console.error(e);
+    }
+  }
 
   function showToast(msg, isError = false) {
     const t = document.getElementById('toast');
