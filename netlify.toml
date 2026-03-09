@@ -5,3 +5,7 @@
 # Auto-score every hour
 [functions."score-matches"]
   schedule = "0 * * * *"
+
+# Send notifications every hour (30 min offset)
+[functions."send-notifications"]
+  schedule = "30 * * * *"

@@ -596,6 +596,7 @@
       }, { merge: true });
 
       await loadUserData();
+      registerPush(user.uid, db, collection, doc, setDoc);
       renderLeagueFilters();
       renderLeagueSelectGrid();
       await loadMatches();
@@ -1027,9 +1028,41 @@
   }
 </script>
 <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js');
+const VAPID_PUBLIC_KEY = 'BDW8vEaVoV7sMOVWGogIYaaWt9C626FKVDef5De4obZC4kDuOznZV1qnU_FLYP2FqoN-1Ydgp-0twb9Y9SQWxos';
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  return new Uint8Array([...rawData].map(c => c.charCodeAt(0)));
+}
+
+async function registerPush(userId, db, collection, doc, setDoc) {
+  try {
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') return;
+
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+    });
+
+    // Save subscription to Firestore
+    await setDoc(doc(db, 'pushSubscriptions', userId), {
+      subscription: sub.toJSON(),
+      userId,
+      createdAt: new Date().toISOString(),
+    });
+  } catch(e) {
+    console.warn('Push registration failed:', e);
   }
+}
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js');
+}
 </script>
 <footer style="text-align:center;padding:20px;font-size:0.7rem;color:#444;border-top:1px solid #1e2230;margin-top:40px;">
   <a href="https://www.flaticon.com/free-icons/soccer" title="soccer icons" style="color:#555;text-decoration:none;">Soccer icons created by Freepik — Flaticon</a>

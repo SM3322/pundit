@@ -10,3 +10,22 @@ self.addEventListener('fetch', e => {
     fetch(e.request).catch(() => caches.match(e.request))
   );
 });
+
+// ── PUSH NOTIFICATIONS ──
+self.addEventListener('push', e => {
+  const data = e.data?.json() || {};
+  const title = data.title || 'Pundit ⚽';
+  const options = {
+    body: data.body || 'You have upcoming matches!',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    data: { url: data.url || '/' },
+    vibrate: [200, 100, 200],
+  };
+  e.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(clients.openWindow(e.notification.data?.url || '/'));
+});
