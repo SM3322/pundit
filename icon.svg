@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="#0d0f14"/>
+  
+  <!-- Football -->
+  <circle cx="256" cy="256" r="160" fill="#f0f2f7" stroke="#1e2230" stroke-width="8"/>
+  
+  <!-- Pentagon center -->
+  <polygon points="256,176 303,210 285,264 227,264 209,210" fill="#111"/>
+  
+  <!-- Side pentagons -->
+  <polygon points="256,176 303,210 320,162 296,120 216,120 192,162 209,210" fill="none" stroke="#111" stroke-width="6"/>
+  <polygon points="303,210 285,264 320,288 362,264 362,210 320,162" fill="#111" opacity="0.15"/>
+  <polygon points="227,264 209,210 192,162 150,162 150,210 192,264" fill="#111" opacity="0.15"/>
+  <polygon points="285,264 256,310 227,264 192,264 176,310 216,380 296,380 336,310 320,288" fill="none" stroke="#111" stroke-width="6"/>
+
+  <!-- Shine -->
+  <circle cx="210" cy="200" r="30" fill="white" opacity="0.15"/>
+</svg>
