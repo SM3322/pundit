@@ -214,6 +214,13 @@
     .group-meta { font-size: 0.78rem; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; }
     .group-leagues { margin-top: 8px; display: flex; gap: 4px; flex-wrap: wrap; }
     .group-league-tag { font-size: 0.65rem; font-weight: 600; padding: 2px 7px; border-radius: 99px; background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+    .delete-group-btn {
+      background: none; border: none; cursor: pointer;
+      font-size: 0.85rem; opacity: 0.5; padding: 2px 4px;
+      border-radius: 6px; transition: opacity 0.2s;
+    }
+    .delete-group-btn:hover { opacity: 1; background: rgba(255,71,87,0.15); }
+
     .create-group-btn {
       background: transparent; border: 1.5px dashed var(--border); border-radius: var(--radius);
       padding: 20px; color: var(--muted); cursor: pointer; font-family: 'DM Sans', sans-serif;
@@ -470,7 +477,7 @@
   import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut as fbSignOut }
     from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
   import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, collection,
-    query, where, getDocs, arrayUnion, serverTimestamp, orderBy }
+    query, where, getDocs, arrayUnion, serverTimestamp, orderBy, deleteDoc }
     from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -768,7 +775,10 @@
       <div class="group-card" onclick="selectGroup('${g.id}')">
         <div class="group-card-top">
           <div class="group-name">${g.name}</div>
-          ${g.id === currentGroupId ? '<span class="group-badge">ACTIVE</span>' : ''}
+          <div style="display:flex;gap:6px;align-items:center">
+            ${g.id === currentGroupId ? '<span class="group-badge">ACTIVE</span>' : ''}
+            ${g.members?.length === 1 ? `<button class="delete-group-btn" onclick="event.stopPropagation();deleteGroup('${g.id}','${g.name}')">🗑</button>` : ''}
+          </div>
         </div>
         <div class="group-meta">
           <span>👥 ${g.members?.length || 1} members</span>
@@ -877,6 +887,18 @@
       </div>
     `).join('');
   }
+
+  window.deleteGroup = async (id, name) => {
+    if (!confirm(\`Delete group "\${name}"?\`)) return;
+    try {
+      await deleteDoc(doc(db, 'groups', id));
+      showToast(\`Group "\${name}" deleted\`);
+      if (currentGroupId === id) currentGroupId = null;
+      await loadGroups();
+    } catch(e) {
+      showToast('Error deleting group.', true);
+    }
+  };
 
   window.joinGroup = async () => {
     const code = document.getElementById('joinCodeInput').value.trim().toUpperCase();
