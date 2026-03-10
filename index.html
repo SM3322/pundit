@@ -540,7 +540,7 @@
 
       // Call via Netlify Function proxy to avoid CORS
       const res = await fetch(
-        `/.netlify/functions/matches?dateFrom=${today}&dateTo=${nextWeek}`
+        `/functions/matches?dateFrom=${today}&dateTo=${nextWeek}`
       );
 
       if (!res.ok) throw new Error("API error: " + res.status);
