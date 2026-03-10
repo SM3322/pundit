@@ -889,10 +889,10 @@
   }
 
   window.deleteGroup = async (id, name) => {
-    if (!confirm(\`Delete group "\${name}"?\`)) return;
+    if (!confirm('Delete group "' + name + '"?')) return;
     try {
       await deleteDoc(doc(db, 'groups', id));
-      showToast(\`Group "\${name}" deleted\`);
+      showToast('Group "' + name + '" deleted');
       if (currentGroupId === id) currentGroupId = null;
       await loadGroups();
     } catch(e) {
