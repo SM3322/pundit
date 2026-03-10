@@ -540,8 +540,7 @@
 
       // Call via Netlify Function proxy to avoid CORS
       const res = await fetch(
-        `https://api.football-data.org/v4/matches?dateFrom=${today}&dateTo=${nextWeek}&competitions=2021,2014,2002,2019,2015,2001,2146,2152`,
-        { headers: { 'X-Auth-Token': API_TOKEN } }
+        `/functions/matches?dateFrom=${today}&dateTo=${nextWeek}`
       );
 
       if (!res.ok) throw new Error("API error: " + res.status);
